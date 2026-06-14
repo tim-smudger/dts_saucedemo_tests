@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug"
+    "test": "bddgen && playwright test",
+    "test:headed": "bddgen && playwright test --headed",
+    "test:ui": "bddgen && playwright test --ui",
+    "test:debug": "bddgen && playwright test --debug"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
     "playwright-bdd": "^9.1.0"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "typescript": "^6.0.3"
   }
 }
