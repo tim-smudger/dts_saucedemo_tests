@@ -8,6 +8,9 @@
     "test:headed": "bddgen && playwright test --headed",
     "test:ui": "bddgen && playwright test --ui",
     "test:debug": "bddgen && playwright test --debug",
+    "test:local": "ENV=local bddgen && playwright test",
+    "test:staging": "ENV=staging bddgen && playwright test",
+    "test:prod": "ENV=production bddgen && playwright test",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -23,10 +26,10 @@
     "eslint": "^10.4.1",
     "playwright-bdd": "^9.1.0",
     "prettier": "^3.8.4",
-    "typescript-eslint": "^8.60.0"
-  },
-  "dependencies": {
+    "typescript-eslint": "^8.60.0",
     "dotenv": "^17.4.2",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
   }
 }
