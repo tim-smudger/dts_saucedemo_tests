@@ -9,7 +9,7 @@ const { Given, When, Then, Before } = createBdd();
 let loginPage: LoginPage;
 let productPage: ProductPage;
 
-Before(async ({ page }) => {
+Before(({ page }) => {
   loginPage = new LoginPage(page);
   productPage = new ProductPage(page);
 });
@@ -19,32 +19,28 @@ Given("I am on the login page", async () => {
 });
 
 When("I sign in as {string} user", async ({}, role: string) => {
-  const credentials = getCredentials(role as "standard" | "locked" | "slow");
-  await loginPage.login(credentials.username, credentials.password);
+  await loginPage.loginAs({ role: role as "standard" | "locked" | "slow" });
 });
 
 When(
   "I sign in with username and empty password as {string} user",
   async ({}, role: string) => {
-    const credentials = getCredentials(role as "standard" | "locked" | "slow");
-    await loginPage.login(credentials.username, "");
-  }
+    await loginPage.loginAs({ role: role as "standard" | "locked" | "slow", password: "" });
+  },
 );
 
 When(
   "I sign in with empty username and password as {string} user",
   async ({}, role: string) => {
-    const credentials = getCredentials(role as "standard" | "locked" | "slow");
-    await loginPage.login("", credentials.password);
-  }
+    await loginPage.loginAs({ role: role as "standard" | "locked" | "slow", username: "" });
+  },
 );
 
 When(
   "I sign in with incorrect password as {string} user",
   async ({}, role: string) => {
-    const credentials = getCredentials(role as "standard" | "locked" | "slow");
-    await loginPage.login(credentials.username, "wrong_password");
-  }
+    await loginPage.loginAs({ role: role as "standard" | "locked" | "slow", password: "wrong_password" });
+  },
 );
 
 When("I click the error dismiss button", async () => {

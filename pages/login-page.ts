@@ -1,5 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { BasePage } from "./base-page";
+import { getCredentials } from "../tests/helper/credentials";
 
 export class LoginPage extends BasePage {
   readonly path = "/";
@@ -51,5 +52,22 @@ export class LoginPage extends BasePage {
 
   async isErrorButtonVisible(): Promise<boolean> {
     return await this.errorButton.isVisible();
+  }
+
+  async loginAs(options: {
+    role?: "standard" | "locked" | "slow";
+    username?: string;
+    password?: string;
+  } = {}): Promise<void> {
+    let username = options.username;
+    let password = options.password;
+
+    if (options.role) {
+      const credentials = getCredentials(options.role);
+      username ??= credentials.username;
+      password ??= credentials.password;
+    }
+
+    await this.login(username || "", password || "");
   }
 }
