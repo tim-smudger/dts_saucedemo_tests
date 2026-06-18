@@ -11,7 +11,7 @@ export class ProductPage extends BasePage {
     this.inventoryContainer = page.locator('[data-test="inventory-container"]');
   }
 
-  protected async waitForLoaded(): Promise<void> {
+   async waitForLoaded(): Promise<void> {
     await this.page.waitForURL("/inventory.html");
     await this.inventoryContainer.waitFor();
   }
