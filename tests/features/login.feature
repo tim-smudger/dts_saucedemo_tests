@@ -41,3 +41,35 @@ Feature: User login
     When I sign in using keyboard as "slow" user
     Then I should be on the inventory page
     And the inventory list should be visible
+
+  # The field error icons look clickable but are not interactive. These scenarios
+  # assert the intuitive behaviour — that clicking an icon dismisses its error — and
+  # are tagged @fail because the app does not support it. playwright-bdd maps @fail to
+  # Playwright's test.fail(), so the build stays green while the behaviour is missing
+  # and will start failing (alerting us) if the app is ever changed to support it.
+  # Only the error banner's dismiss (X) button actually clears the error.
+  @fail
+  Scenario: Clicking the username error icon dismisses the error
+    When I sign in with incorrect password as "standard" user
+    And I click the username error icon
+    Then the username error icon should not be visible
+
+  @fail
+  Scenario: Clicking the password error icon dismisses the error
+    When I sign in with incorrect password as "standard" user
+    And I click the password error icon
+    Then the password error icon should not be visible
+
+  Scenario: The dismiss button clears the field error icons
+    When I sign in with incorrect password as "standard" user
+    Then the username error icon should be visible
+    And the password error icon should be visible
+    When I click the error dismiss button
+    Then the username error icon should not be visible
+    And the password error icon should not be visible
+
+  Scenario: Logout returns to the login page
+    Given I sign in as "standard" user
+    And the inventory list should be visible
+    When I logout via the menu
+    Then I should be on the login page

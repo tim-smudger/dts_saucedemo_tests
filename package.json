@@ -5,9 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "bddgen && playwright test",
+    "test:functional": "bddgen && SUITE=functional playwright test",
+    "test:a11y": "bddgen && SUITE=a11y playwright test",
+    "test:all": "bddgen && SUITE=all playwright test",
     "test:headed": "bddgen && playwright test --headed",
     "test:ui": "bddgen && playwright test --ui",
     "test:debug": "bddgen && playwright test --debug",
+    "test:local": "bddgen && ENV=local playwright test",
+    "test:staging": "bddgen && ENV=staging playwright test",
+    "test:prod": "bddgen && ENV=production playwright test",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -16,17 +22,17 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@cucumber/cucumber": "^13.0.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.3",
+    "axe-playwright": "^2.2.2",
+    "dotenv": "^17.4.2",
     "eslint": "^10.4.1",
     "playwright-bdd": "^9.1.0",
     "prettier": "^3.8.4",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.0"
-  },
-  "dependencies": {
-    "dotenv": "^17.4.2",
-    "typescript": "^6.0.3"
   }
 }
