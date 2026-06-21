@@ -1,10 +1,22 @@
 on:
   push:
-    branches: [main, master, gh_actions]
+    branches: [main, master, expand-login-and-accessibility-tests]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+
   functional-tests:
     timeout-minutes: 60
     runs-on: ubuntu-latest
@@ -18,9 +30,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run functional tests
-        run: npm run test:functional
+        run: npm run test:functional -- --reporter=blob
         env:
           ENV: production
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/functional.zip
           STANDARD_USER: ${{ secrets.STANDARD_USER }}
           PASSWORD_FOR_ALL: ${{ secrets.PASSWORD_FOR_ALL }}
           LOCKED_USER: ${{ secrets.LOCKED_USER }}
@@ -28,8 +41,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-functional
-          path: playwright-report/
+          name: blob-functional
+          path: blob-report/functional.zip
           retention-days: 30
 
   accessibility-tests:
@@ -45,9 +58,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run accessibility scans (desktop + mobile)
-        run: npm run test:a11y
+        run: npm run test:a11y -- --reporter=blob
         env:
           ENV: production
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/accessibility.zip
           STANDARD_USER: ${{ secrets.STANDARD_USER }}
           PASSWORD_FOR_ALL: ${{ secrets.PASSWORD_FOR_ALL }}
           LOCKED_USER: ${{ secrets.LOCKED_USER }}
@@ -55,6 +69,43 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-accessibility
-          path: playwright-report/
+          name: blob-accessibility
+          path: blob-report/accessibility.zip
           retention-days: 30
+
+  # Merge the functional + accessibility blob reports into a single HTML report and
+  # publish it to GitHub Pages. Runs even if the test jobs failed (you still want to
+  # see the failing report).
+  # One-time setup: in repo Settings → Pages, set the source to "GitHub Actions".
+  publish-report:
+    needs: [functional-tests, accessibility-tests]
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/expand-login-and-accessibility-tests') }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-*
+          merge-multiple: true
+      - name: Merge blobs into one HTML report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -17,13 +17,15 @@ function summarise(violations: Result[]): string {
     .join("\n");
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(({ page }) => {
   loginPage = new LoginPage(page);
   productPage = new ProductPage(page);
 });
 
 test.describe("Accessibility", { tag: "@accessibility" }, () => {
-  test("login page has no critical or serious violations", async ({ page }, testInfo) => {
+  test("login page has no critical or serious violations", async ({
+    page,
+  }, testInfo) => {
     await loginPage.goto();
 
     const results = await new AxeBuilder({ page }).analyze();
@@ -35,14 +37,16 @@ test.describe("Accessibility", { tag: "@accessibility" }, () => {
     });
 
     const blocking = results.violations.filter((v) =>
-      BLOCKING_IMPACTS.includes(v.impact ?? "")
+      BLOCKING_IMPACTS.includes(v.impact ?? ""),
     );
 
     // Readable diff on failure instead of a 600-line object dump.
     expect(blocking, summarise(blocking)).toEqual([]);
   });
 
-  test("product page has no critical or serious violations", async ({ page }, testInfo) => {
+  test("product page has no critical or serious violations", async ({
+    page,
+  }, testInfo) => {
     await loginPage.goto();
     await loginPage.loginAs({ role: "standard" });
     await productPage.waitForLoaded();
@@ -55,7 +59,7 @@ test.describe("Accessibility", { tag: "@accessibility" }, () => {
     });
 
     const blocking = results.violations.filter((v) =>
-      BLOCKING_IMPACTS.includes(v.impact ?? "")
+      BLOCKING_IMPACTS.includes(v.impact ?? ""),
     );
 
     expect(blocking, summarise(blocking)).toEqual([]);

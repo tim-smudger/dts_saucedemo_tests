@@ -1,6 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 import { BasePage } from "./base-page";
-import { getCredentials } from "../tests/helper/credentials";
+import { getCredentials, type Role } from "../tests/helper/credentials";
 
 export class LoginPage extends BasePage {
   readonly path = "/";
@@ -8,19 +8,27 @@ export class LoginPage extends BasePage {
   private readonly usernameField: Locator;
   private readonly passwordField: Locator;
   private readonly loginButton: Locator;
-  private readonly errorButton: Locator;
-  private readonly errorText: Locator;
+  private readonly errorMesssageButton: Locator;
+  private readonly errorMessageText: Locator;
+  private readonly usernameErrorIcon: Locator;
+  private readonly passwordErrorIcon: Locator;
 
   constructor(page: Page) {
     super(page);
     this.usernameField = page.locator('[data-test="username"]');
     this.passwordField = page.locator('[data-test="password"]');
     this.loginButton = page.locator('[data-test="login-button"]');
-    this.errorText = page.locator('[data-test="error"]');
-    this.errorButton = page.locator('button[data-test="error-button"]');
+    this.errorMessageText = page.locator('[data-test="error"]');
+    this.errorMesssageButton = page.locator('button[data-test="error-button"]');
+    this.usernameErrorIcon = page.locator(
+      '[data-test="username"] ~ svg.error_icon',
+    );
+    this.passwordErrorIcon = page.locator(
+      '[data-test="password"] ~ svg.error_icon',
+    );
   }
 
-  protected async waitForLoaded(): Promise<void> {
+  async waitForLoaded(): Promise<void> {
     await this.page.waitForURL("/");
     await this.usernameField.waitFor();
   }
@@ -42,23 +50,41 @@ export class LoginPage extends BasePage {
     await this.passwordField.press("Enter");
   }
 
+  async clearUsernameErrorIcon(): Promise<void> {
+    return await this.usernameErrorIcon.click();
+  }
+
+  async clearPasswordErrorIcon(): Promise<void> {
+    return await this.passwordErrorIcon.click();
+  }
+
+  async isUsernameErrorIconVisible(): Promise<boolean> {
+    return await this.usernameErrorIcon.isVisible();
+  }
+
+  async isPasswordErrorIconVisible(): Promise<boolean> {
+    return await this.passwordErrorIcon.isVisible();
+  }
+
   async getErrorMessage(): Promise<string> {
-    return await this.errorText.innerText();
+    return await this.errorMessageText.innerText();
   }
 
   async clearError(): Promise<void> {
-    await this.errorButton.click();
+    await this.errorMesssageButton.click();
   }
 
   async isErrorButtonVisible(): Promise<boolean> {
-    return await this.errorButton.isVisible();
+    return await this.errorMesssageButton.isVisible();
   }
 
-  async loginAs(options: {
-    role?: "standard" | "locked" | "slow";
-    username?: string;
-    password?: string;
-  } = {}): Promise<void> {
+  async loginAs(
+    options: {
+      role?: Role;
+      username?: string;
+      password?: string;
+    } = {},
+  ): Promise<void> {
     let username = options.username;
     let password = options.password;
 

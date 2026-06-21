@@ -27,7 +27,7 @@ const environments = {
         username: process.env.LOCKED_USER!,
         password: process.env.PASSWORD_FOR_ALL!,
       },
-        slow: {
+      slow: {
         username: process.env.TIMEOUT_TEST_USER!,
         password: process.env.PASSWORD_FOR_ALL!,
       },
