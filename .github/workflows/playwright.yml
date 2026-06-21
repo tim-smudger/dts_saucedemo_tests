@@ -30,9 +30,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run functional tests
-        run: npm run test:functional
+        run: npm run test:functional -- --reporter=blob
         env:
           ENV: production
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/functional.zip
           STANDARD_USER: ${{ secrets.STANDARD_USER }}
           PASSWORD_FOR_ALL: ${{ secrets.PASSWORD_FOR_ALL }}
           LOCKED_USER: ${{ secrets.LOCKED_USER }}
@@ -40,8 +41,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-functional
-          path: playwright-report/
+          name: blob-functional
+          path: blob-report/functional.zip
           retention-days: 30
 
   accessibility-tests:
@@ -57,9 +58,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run accessibility scans (desktop + mobile)
-        run: npm run test:a11y
+        run: npm run test:a11y -- --reporter=blob
         env:
           ENV: production
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: blob-report/accessibility.zip
           STANDARD_USER: ${{ secrets.STANDARD_USER }}
           PASSWORD_FOR_ALL: ${{ secrets.PASSWORD_FOR_ALL }}
           LOCKED_USER: ${{ secrets.LOCKED_USER }}
@@ -67,12 +69,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report-accessibility
-          path: playwright-report/
+          name: blob-accessibility
+          path: blob-report/accessibility.zip
           retention-days: 30
 
-  # Publish the HTML reports to GitHub Pages. Runs only on pushes to main, and
-  # even if the test jobs failed (you still want to see the failing report).
+  # Merge the functional + accessibility blob reports into a single HTML report and
+  # publish it to GitHub Pages. Runs even if the test jobs failed (you still want to
+  # see the failing report).
   # One-time setup: in repo Settings → Pages, set the source to "GitHub Actions".
   publish-report:
     needs: [functional-tests, accessibility-tests]
@@ -85,38 +88,24 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Download functional report
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Download blob reports
         uses: actions/download-artifact@v4
         with:
-          name: playwright-report-functional
-          path: site/functional
-      - name: Download accessibility report
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-report-accessibility
-          path: site/accessibility
-      - name: Create landing page
-        run: |
-          cat > site/index.html <<'HTML'
-          <!doctype html>
-          <html lang="en">
-            <head>
-              <meta charset="utf-8" />
-              <title>SauceDemo test reports</title>
-            </head>
-            <body>
-              <h1>SauceDemo test reports</h1>
-              <ul>
-                <li><a href="./functional/">Functional report</a></li>
-                <li><a href="./accessibility/">Accessibility report</a></li>
-              </ul>
-            </body>
-          </html>
-          HTML
+          path: all-blob-reports
+          pattern: blob-*
+          merge-multiple: true
+      - name: Merge blobs into one HTML report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: playwright-report
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
