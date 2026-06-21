@@ -124,10 +124,11 @@ violations, while attaching the full scan to the report for context.
 - The accessibility spec **attaches the full axe JSON** to each test and prints a
   one-line-per-violation summary on failure, so a failing scan is readable rather than a
   600-line object dump.
-- In CI, reports are uploaded as artifacts (30-day retention) and, on pushes to `main`,
-  the functional and accessibility reports are published to **GitHub Pages** (via a
-  `publish-report` job) so the latest run is browsable at a URL without downloading
-  artifacts.
+- In CI, each test job uploads a Playwright **blob** report as an artifact (30-day
+  retention). On pushes to `main`, a `publish-report` job merges the functional and
+  accessibility blobs into a single HTML report (`playwright merge-reports`) and
+  publishes it to **GitHub Pages**, so the latest run is browsable at a URL without
+  downloading artifacts.
 
 ## Continuous integration
 
@@ -136,8 +137,8 @@ jobs on every push/PR: **lint**, **functional-tests**, and **accessibility-tests
 Functional and a11y are split so a styling/a11y regression and a functional regression
 are reported independently, and each uploads its own report artifact. Credentials are
 injected from repository secrets. A fourth job, **publish-report**, runs on pushes to
-`main` (even if tests failed) and deploys both HTML reports to GitHub Pages behind a small
-landing page.
+`main` (even if tests failed); it merges the two jobs' blob reports into a single HTML
+report with `playwright merge-reports` and deploys it to GitHub Pages.
 
 ## Test suites and environments
 
