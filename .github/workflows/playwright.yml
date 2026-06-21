@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [main, master, gh_actions]
+    branches: [main, master, expand-login-and-accessibility-tests]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
@@ -70,3 +70,53 @@ jobs:
           name: playwright-report-accessibility
           path: playwright-report/
           retention-days: 30
+
+  # Publish the HTML reports to GitHub Pages. Runs only on pushes to main, and
+  # even if the test jobs failed (you still want to see the failing report).
+  # One-time setup: in repo Settings → Pages, set the source to "GitHub Actions".
+  publish-report:
+    needs: [functional-tests, accessibility-tests]
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/expand-login-and-accessibility-tests') }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Download functional report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-functional
+          path: site/functional
+      - name: Download accessibility report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-accessibility
+          path: site/accessibility
+      - name: Create landing page
+        run: |
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <title>SauceDemo test reports</title>
+            </head>
+            <body>
+              <h1>SauceDemo test reports</h1>
+              <ul>
+                <li><a href="./functional/">Functional report</a></li>
+                <li><a href="./accessibility/">Accessibility report</a></li>
+              </ul>
+            </body>
+          </html>
+          HTML
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -135,6 +135,14 @@ npm run format   # Prettier (write)
 accessibility jobs in parallel on every push and pull request, uploading the HTML
 report as an artifact. Credentials are injected from repository secrets.
 
+On pushes to `main`, a `publish-report` job deploys the functional and accessibility
+HTML reports to **GitHub Pages** (behind a small landing page), so the latest run is
+browsable at a URL without downloading artifacts.
+
+> One-time setup: in the repository **Settings → Pages**, set the source to
+> **GitHub Actions**. The job uses the official Pages deployment and needs no extra
+> secrets.
+
 ## Project structure
 
 ```
