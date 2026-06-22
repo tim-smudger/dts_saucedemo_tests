@@ -169,6 +169,11 @@ Given more time I would:
    matrix fast as the suite grows.
 7. **Accessibility depth.** Extend axe scans to all routes and add focus-order/keyboard-
    trap assertions beyond the single keyboard-login scenario.
+8. **Containerised execution.** Add a `Dockerfile` based on the official Playwright image
+   (pinned to the project's version) so the suite runs in an identical, reproducible
+   environment locally and in CI — pinning browser/OS versions and removing
+   "works on my machine" drift. This also aligns with the container-based CI/CD pipelines
+   commonly used in the civil service.
 
 ## A note on the `@fail` scenarios
 

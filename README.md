@@ -111,6 +111,16 @@ viewports.
 **Accessibility** — axe scans of the login and product pages, failing on
 `critical`/`serious` violations.
 
+> **Note on the failing accessibility job:** the accessibility check currently fails in
+> CI because the application under test (SauceDemo) has genuine WCAG violations. This is
+> deliberate: in a public-sector context, accessibility is a legal requirement
+> (Public Sector Bodies Accessibility Regulations 2018 / WCAG 2.2 AA), so a real service
+> failing these checks would be a **release blocker that must be fixed in the app** — not
+> something to hide by weakening the test or baselining the violations. Since the Saucedemo is a
+> third-party site we can't change, the gate is left strict so it honestly reports the
+> non-compliance. The `lint` and `functional` jobs remain green, so the red status is
+> specifically and intentionally the accessibility gate.
+
 ## Reporting
 
 Playwright generates an HTML report after a run:
@@ -154,3 +164,9 @@ tests/helper/          Test-data helpers (credentials)
 environments.ts        Per-environment config (baseURL + users)
 playwright.config.ts   Playwright + BDD + suite/project configuration
 ```
+
+## Design and future improvements
+
+See [DESIGN.md](DESIGN.md) for the architecture, the rationale behind the key decisions
+(Page Object Model, BDD, test-data strategy, wait strategies, reporting), and a list of
+improvements that would be made with more time.
